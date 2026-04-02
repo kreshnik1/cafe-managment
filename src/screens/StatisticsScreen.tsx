@@ -15,16 +15,12 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { getStatistics, PeriodRow } from '../services/transactions';
 
 type Mode = 'daily' | 'monthly' | 'yearly' | 'custom';
 
-const MODES: { key: Mode; label: string }[] = [
-  { key: 'daily',   label: 'Daily' },
-  { key: 'monthly', label: 'Monthly' },
-  { key: 'yearly',  label: 'Yearly' },
-  { key: 'custom',  label: 'Custom' },
-];
+const MODES: Mode[] = ['daily', 'monthly', 'yearly', 'custom'];
 
 // ── Date picker modal (month + year navigation) ───────────────────
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -162,6 +158,7 @@ function DatePickerModal({
 
 // ── Period row card ───────────────────────────────────────────────
 function PeriodCard({ item, maxIncome }: { item: PeriodRow; maxIncome: number }) {
+  const { t, fmt } = useSettings();
   const isProfit = item.profit >= 0;
   const barWidth = maxIncome > 0 ? (item.total_income / maxIncome) * 100 : 0;
   const expenseBarWidth = maxIncome > 0 ? (item.total_expenses / maxIncome) * 100 : 0;
@@ -171,7 +168,7 @@ function PeriodCard({ item, maxIncome }: { item: PeriodRow; maxIncome: number })
       <View style={styles.cardHeader}>
         <Text style={styles.cardLabel}>{item.label}</Text>
         <Text style={[styles.profitBadge, isProfit ? styles.profitBadgeGreen : styles.profitBadgeRed]}>
-          {isProfit ? '+' : ''}${item.profit.toFixed(2)}
+          {isProfit ? '+' : ''}{fmt(item.profit)}
         </Text>
       </View>
 
@@ -179,18 +176,18 @@ function PeriodCard({ item, maxIncome }: { item: PeriodRow; maxIncome: number })
         <View style={styles.statItem}>
           <View style={[styles.statDot, { backgroundColor: '#10B981' }]} />
           <View>
-            <Text style={styles.statLabel}>Income</Text>
+            <Text style={styles.statLabel}>{t('statisticsIncome')}</Text>
             <Text style={[styles.statValue, { color: '#10B981' }]}>
-              ${item.total_income.toFixed(2)}
+              {fmt(item.total_income)}
             </Text>
           </View>
         </View>
         <View style={styles.statItem}>
           <View style={[styles.statDot, { backgroundColor: '#EF4444' }]} />
           <View>
-            <Text style={styles.statLabel}>Expenses</Text>
+            <Text style={styles.statLabel}>{t('statisticsExpenses')}</Text>
             <Text style={[styles.statValue, { color: '#EF4444' }]}>
-              ${item.total_expenses.toFixed(2)}
+              {fmt(item.total_expenses)}
             </Text>
           </View>
         </View>
@@ -215,6 +212,7 @@ function PeriodCard({ item, maxIncome }: { item: PeriodRow; maxIncome: number })
 
 // ── Summary banner ────────────────────────────────────────────────
 function SummaryBanner({ data }: { data: PeriodRow[] }) {
+  const { t, fmt } = useSettings();
   const totalIncome   = data.reduce((s, r) => s + r.total_income,   0);
   const totalExpenses = data.reduce((s, r) => s + r.total_expenses, 0);
   const totalProfit   = totalIncome - totalExpenses;
@@ -224,21 +222,21 @@ function SummaryBanner({ data }: { data: PeriodRow[] }) {
     <View style={styles.banner}>
       <View style={styles.bannerItem}>
         <Ionicons name="arrow-up-circle" size={18} color="#10B981" />
-        <Text style={styles.bannerLabel}>Income</Text>
-        <Text style={[styles.bannerValue, { color: '#10B981' }]}>${totalIncome.toFixed(2)}</Text>
+        <Text style={styles.bannerLabel}>{t('statisticsIncome')}</Text>
+        <Text style={[styles.bannerValue, { color: '#10B981' }]}>{fmt(totalIncome)}</Text>
       </View>
       <View style={styles.bannerDivider} />
       <View style={styles.bannerItem}>
         <Ionicons name="arrow-down-circle" size={18} color="#EF4444" />
-        <Text style={styles.bannerLabel}>Expenses</Text>
-        <Text style={[styles.bannerValue, { color: '#EF4444' }]}>${totalExpenses.toFixed(2)}</Text>
+        <Text style={styles.bannerLabel}>{t('statisticsExpenses')}</Text>
+        <Text style={[styles.bannerValue, { color: '#EF4444' }]}>{fmt(totalExpenses)}</Text>
       </View>
       <View style={styles.bannerDivider} />
       <View style={styles.bannerItem}>
         <Ionicons name="trending-up" size={18} color={totalProfit >= 0 ? '#6B4E2E' : '#EF4444'} />
-        <Text style={styles.bannerLabel}>Profit</Text>
+        <Text style={styles.bannerLabel}>{t('statisticsProfit')}</Text>
         <Text style={[styles.bannerValue, { color: totalProfit >= 0 ? '#6B4E2E' : '#EF4444' }]}>
-          {totalProfit >= 0 ? '+' : ''}${totalProfit.toFixed(2)}
+          {totalProfit >= 0 ? '+' : ''}{fmt(totalProfit)}
         </Text>
       </View>
       <View style={styles.bannerDivider} />
@@ -254,6 +252,7 @@ function SummaryBanner({ data }: { data: PeriodRow[] }) {
 // ── Main screen ───────────────────────────────────────────────────
 export default function StatisticsScreen() {
   const { cafe } = useAuth();
+  const { t } = useSettings();
 
   const [mode, setMode]   = useState<Mode>('monthly');
   const [data, setData]   = useState<PeriodRow[]>([]);
@@ -308,12 +307,12 @@ export default function StatisticsScreen() {
       <View style={styles.modeTabs}>
         {MODES.map((m) => (
           <TouchableOpacity
-            key={m.key}
-            style={[styles.modeTab, mode === m.key && styles.modeTabActive]}
-            onPress={() => switchMode(m.key)}
+            key={m}
+            style={[styles.modeTab, mode === m && styles.modeTabActive]}
+            onPress={() => switchMode(m)}
           >
-            <Text style={[styles.modeTabText, mode === m.key && styles.modeTabTextActive]}>
-              {m.label}
+            <Text style={[styles.modeTabText, mode === m && styles.modeTabTextActive]}>
+              {t(m === 'daily' ? 'statisticsDaily' : m === 'monthly' ? 'statisticsMonthly' : m === 'yearly' ? 'statisticsYearly' : 'statisticsCustom')}
             </Text>
           </TouchableOpacity>
         ))}

@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.ts",
   "scripts": {
-    "start": "EXPO_USE_WATCHMAN=0 expo start",
-    "android": "EXPO_USE_WATCHMAN=0 expo start --android",
-    "ios": "EXPO_USE_WATCHMAN=0 expo start --ios",
-    "web": "EXPO_USE_WATCHMAN=0 expo start --web"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^6.6.1",

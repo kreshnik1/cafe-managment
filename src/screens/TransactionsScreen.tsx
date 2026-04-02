@@ -17,6 +17,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { getTransactions, deleteTransaction } from '../services/transactions';
 import { Transaction } from '../types';
 
@@ -136,6 +137,7 @@ function DateSpinner({
 
 // ── Transaction item ──────────────────────────────────────────────
 function TransactionItem({ item, onDelete }: { item: Transaction; onDelete: (id: string) => void }) {
+  const { fmt } = useSettings();
   const isIncome = item.type === 'income';
 
   function confirmDelete() {
@@ -167,7 +169,7 @@ function TransactionItem({ item, onDelete }: { item: Transaction; onDelete: (id:
       {/* Amount + delete */}
       <View style={itemStyles.right}>
         <Text style={[itemStyles.amount, isIncome ? itemStyles.amountIncome : itemStyles.amountExpense]}>
-          {isIncome ? '+' : '−'}${Number(item.amount).toFixed(2)}
+          {isIncome ? '+' : '−'}{fmt(Number(item.amount))}
         </Text>
         <TouchableOpacity onPress={confirmDelete} style={itemStyles.deleteBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Ionicons name="trash-outline" size={14} color="#D1D5DB" />
@@ -179,12 +181,13 @@ function TransactionItem({ item, onDelete }: { item: Transaction; onDelete: (id:
 
 // ── Day section header ────────────────────────────────────────────
 function DayHeader({ label, income, expense }: { label: string; income: number; expense: number }) {
+  const { fmt } = useSettings();
   return (
     <View style={itemStyles.dayHeader}>
       <Text style={itemStyles.dayLabel}>{label}</Text>
       <View style={itemStyles.dayTotals}>
-        <Text style={itemStyles.dayIncome}>+${income.toFixed(2)}</Text>
-        <Text style={itemStyles.dayExpense}>  −${expense.toFixed(2)}</Text>
+        <Text style={itemStyles.dayIncome}>+{fmt(income)}</Text>
+        <Text style={itemStyles.dayExpense}>  −{fmt(expense)}</Text>
       </View>
     </View>
   );
@@ -192,6 +195,7 @@ function DayHeader({ label, income, expense }: { label: string; income: number; 
 
 // ── Summary strip ─────────────────────────────────────────────────
 function SummaryStrip({ data, total }: { data: Transaction[]; total: number }) {
+  const { t: tr, fmt } = useSettings();
   const income   = data.filter(t => t.type === 'income').reduce((s,t) => s + Number(t.amount), 0);
   const expenses = data.filter(t => t.type === 'expense').reduce((s,t) => s + Number(t.amount), 0);
 
@@ -199,24 +203,24 @@ function SummaryStrip({ data, total }: { data: Transaction[]; total: number }) {
     <View style={summaryStyles.strip}>
       <View style={summaryStyles.col}>
         <Text style={summaryStyles.count}>{data.length} of {total}</Text>
-        <Text style={summaryStyles.colLabel}>Transactions</Text>
+        <Text style={summaryStyles.colLabel}>{tr('transactionsCount')}</Text>
       </View>
       <View style={summaryStyles.divider} />
       <View style={summaryStyles.col}>
-        <Text style={[summaryStyles.val, { color: '#059669' }]}>+${income.toFixed(2)}</Text>
-        <Text style={summaryStyles.colLabel}>Income</Text>
+        <Text style={[summaryStyles.val, { color: '#059669' }]}>+{fmt(income)}</Text>
+        <Text style={summaryStyles.colLabel}>{tr('transactionsIncome')}</Text>
       </View>
       <View style={summaryStyles.divider} />
       <View style={summaryStyles.col}>
-        <Text style={[summaryStyles.val, { color: '#DC2626' }]}>−${expenses.toFixed(2)}</Text>
-        <Text style={summaryStyles.colLabel}>Expenses</Text>
+        <Text style={[summaryStyles.val, { color: '#DC2626' }]}>−{fmt(expenses)}</Text>
+        <Text style={summaryStyles.colLabel}>{tr('transactionsExpenses')}</Text>
       </View>
       <View style={summaryStyles.divider} />
       <View style={summaryStyles.col}>
         <Text style={[summaryStyles.val, { color: income - expenses >= 0 ? '#6B4E2E' : '#DC2626' }]}>
-          ${(income - expenses).toFixed(2)}
+          {fmt(income - expenses)}
         </Text>
-        <Text style={summaryStyles.colLabel}>Net</Text>
+        <Text style={summaryStyles.colLabel}>{tr('transactionsNet')}</Text>
       </View>
     </View>
   );

@@ -43,28 +43,38 @@ export async function deleteTransaction(id: string): Promise<void> {
 export async function getDashboardTotals(cafeId: string) {
   const today = new Date();
   const start = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-  const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+  const end   = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
 
-  const { data, error } = await supabase
-    .from('transactions')
-    .select('amount, type')
-    .eq('cafe_id', cafeId)
-    .gte('created_at', start)
-    .lt('created_at', end);
+  const [{ data: txData, error: txError }, { data: orderData, error: orderError }] =
+    await Promise.all([
+      supabase
+        .from('transactions')
+        .select('amount, type')
+        .eq('cafe_id', cafeId)
+        .gte('created_at', start)
+        .lt('created_at', end),
+      supabase
+        .from('orders')
+        .select('total_amount')
+        .eq('cafe_id', cafeId)
+        .eq('is_paid', true)
+        .gte('created_at', start)
+        .lt('created_at', end),
+    ]);
 
-  if (error) throw error;
+  if (txError) throw txError;
+  if (orderError) throw orderError;
 
-  const rows = data ?? [];
-  const totalIncome = rows
-    .filter((r) => r.type === 'income')
-    .reduce((sum, r) => sum + Number(r.amount), 0);
-  const totalExpenses = rows
-    .filter((r) => r.type === 'expense')
-    .reduce((sum, r) => sum + Number(r.amount), 0);
+  const txRows      = txData ?? [];
+  const txIncome    = txRows.filter((r) => r.type === 'income').reduce((sum, r) => sum + Number(r.amount), 0);
+  const totalExpenses = txRows.filter((r) => r.type === 'expense').reduce((sum, r) => sum + Number(r.amount), 0);
+  const ordersIncome  = (orderData ?? []).reduce((sum, r) => sum + Number(r.total_amount), 0);
+  const totalIncome   = txIncome + ordersIncome;
 
   return {
     totalIncome,
     totalExpenses,
+    ordersIncome,
     profit: totalIncome - totalExpenses,
     cashBalance: totalIncome - totalExpenses,
   };

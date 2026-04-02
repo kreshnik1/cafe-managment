@@ -16,6 +16,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import {
   getEmployees,
   addEmployee,
@@ -84,6 +85,7 @@ type Tab = 'staff' | 'shifts';
 // ── Main Screen ──────────────────────────────────────────────────
 export default function ShiftsScreen() {
   const { cafe } = useAuth();
+  const { fmt } = useSettings();
 
   const [activeTab, setActiveTab] = useState<Tab>('shifts');
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -484,7 +486,7 @@ export default function ShiftsScreen() {
         <View style={mStyles.summaryInfoRow}>
           <View style={mStyles.summaryInfo}>
             <Text style={mStyles.summaryInfoLabel}>Opening Cash</Text>
-            <Text style={mStyles.summaryInfoValue}>${Number(closingShift?.start_cash ?? 0).toFixed(2)}</Text>
+            <Text style={mStyles.summaryInfoValue}>{fmt(Number(closingShift?.start_cash ?? 0))}</Text>
           </View>
           <View style={mStyles.summaryInfo}>
             <Text style={mStyles.summaryInfoLabel}>Duration</Text>
@@ -611,6 +613,7 @@ function ShiftCard({
   onClose?: () => void;
   onEdit: () => void;
 }) {
+  const { fmt } = useSettings();
   const isOpen = !shift.closed_at;
   const diff   = shift.end_cash != null ? shift.end_cash - shift.start_cash : null;
   const name   = shift.employees?.name ?? 'Unknown';
@@ -648,13 +651,13 @@ function ShiftCard({
       <View style={cardStyles.cashRow}>
         <View style={cardStyles.cashBox}>
           <Text style={cardStyles.cashLabel}>Opening</Text>
-          <Text style={cardStyles.cashValue}>${Number(shift.start_cash).toFixed(2)}</Text>
+          <Text style={cardStyles.cashValue}>{fmt(Number(shift.start_cash))}</Text>
         </View>
         <Ionicons name="arrow-forward" size={14} color="#D1D5DB" />
         <View style={cardStyles.cashBox}>
           <Text style={cardStyles.cashLabel}>Closing</Text>
           <Text style={cardStyles.cashValue}>
-            {shift.end_cash != null ? `$${Number(shift.end_cash).toFixed(2)}` : '—'}
+            {shift.end_cash != null ? fmt(Number(shift.end_cash)) : '—'}
           </Text>
         </View>
         <Ionicons name="arrow-forward" size={14} color="#D1D5DB" />
@@ -664,7 +667,7 @@ function ShiftCard({
             cardStyles.cashValue,
             diff != null && (diff >= 0 ? cardStyles.diffPos : cardStyles.diffNeg),
           ]}>
-            {diff != null ? `${diff >= 0 ? '+' : ''}$${diff.toFixed(2)}` : '—'}
+            {diff != null ? `${diff >= 0 ? '+' : '−'}${fmt(Math.abs(diff))}` : '—'}
           </Text>
         </View>
       </View>

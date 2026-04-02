@@ -6,12 +6,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import LoginScreen from '../screens/LoginScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import TransactionsScreen from '../screens/TransactionsScreen';
 import AddTransactionScreen from '../screens/AddTransactionScreen';
 import StatisticsScreen from '../screens/StatisticsScreen';
 import ShiftsScreen from '../screens/ShiftsScreen';
+import InventoryScreen from '../screens/InventoryScreen';
+import OrdersScreen from '../screens/OrdersScreen';
+import NewOrderScreen from '../screens/NewOrderScreen';
+import MoreScreen from '../screens/MoreScreen';
+import PurchaseOrdersScreen from '../screens/PurchaseOrdersScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -19,13 +26,15 @@ const Stack = createNativeStackNavigator();
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
 const TAB_ICONS: Record<string, { active: IoniconsName; inactive: IoniconsName }> = {
-  Dashboard:    { active: 'home',          inactive: 'home-outline' },
-  Transactions: { active: 'swap-vertical', inactive: 'swap-vertical-outline' },
-  Statistics:   { active: 'bar-chart',     inactive: 'bar-chart-outline' },
-  Staff:        { active: 'people',        inactive: 'people-outline' },
+  Dashboard:    { active: 'home',                   inactive: 'home-outline' },
+  Orders:       { active: 'receipt',                inactive: 'receipt-outline' },
+  Inventory:    { active: 'cube',                   inactive: 'cube-outline' },
+  Transactions: { active: 'swap-vertical',          inactive: 'swap-vertical-outline' },
+  More:         { active: 'ellipsis-horizontal',    inactive: 'ellipsis-horizontal-outline' },
 };
 
 function MainTabs() {
+  const { t } = useSettings();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -72,22 +81,27 @@ function MainTabs() {
       <Tab.Screen
         name="Dashboard"
         component={DashboardScreen}
-        options={{ title: 'Dashboard' }}
+        options={{ title: t('tabDashboard') }}
+      />
+      <Tab.Screen
+        name="Orders"
+        component={OrdersScreen}
+        options={{ title: t('tabOrders') }}
+      />
+      <Tab.Screen
+        name="Inventory"
+        component={InventoryScreen}
+        options={{ title: t('tabInventory') }}
       />
       <Tab.Screen
         name="Transactions"
         component={TransactionsScreen}
-        options={{ title: 'Transactions' }}
+        options={{ title: t('tabTransactions') }}
       />
       <Tab.Screen
-        name="Statistics"
-        component={StatisticsScreen}
-        options={{ title: 'Statistics' }}
-      />
-      <Tab.Screen
-        name="Staff"
-        component={ShiftsScreen}
-        options={{ title: 'Staff & Shifts' }}
+        name="More"
+        component={MoreScreen}
+        options={{ title: t('tabMore'), headerShown: false }}
       />
     </Tab.Navigator>
   );
@@ -95,6 +109,7 @@ function MainTabs() {
 
 export default function AppNavigator() {
   const { session, loading } = useAuth();
+  const { t } = useSettings();
 
   if (loading) {
     return (
@@ -117,9 +132,68 @@ export default function AppNavigator() {
                 headerShown: true,
                 title: 'Add Transaction',
                 presentation: 'modal',
-                headerStyle: {
-                  backgroundColor: '#fff',
-                },
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+                headerTintColor: '#6B4E2E',
+                headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
+              }}
+            />
+            <Stack.Screen
+              name="NewOrder"
+              component={NewOrderScreen}
+              options={{
+                headerShown: true,
+                title: 'New Order',
+                presentation: 'modal',
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+                headerTintColor: '#6B4E2E',
+                headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
+              }}
+            />
+            <Stack.Screen
+              name="Statistics"
+              component={StatisticsScreen}
+              options={{
+                headerShown: true,
+                title: t('statisticsMenuItem'),
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+                headerTintColor: '#6B4E2E',
+                headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
+              }}
+            />
+            <Stack.Screen
+              name="Staff"
+              component={ShiftsScreen}
+              options={{
+                headerShown: true,
+                title: t('staffMenuItem'),
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+                headerTintColor: '#6B4E2E',
+                headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
+              }}
+            />
+            <Stack.Screen
+              name="PurchaseOrders"
+              component={PurchaseOrdersScreen}
+              options={{
+                headerShown: true,
+                title: t('purchaseOrdersMenuItem'),
+                headerStyle: { backgroundColor: '#fff' },
+                headerShadowVisible: false,
+                headerTintColor: '#6B4E2E',
+                headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
+              }}
+            />
+            <Stack.Screen
+              name="Settings"
+              component={SettingsScreen}
+              options={{
+                headerShown: true,
+                title: t('settingsTitle'),
+                headerStyle: { backgroundColor: '#fff' },
                 headerShadowVisible: false,
                 headerTintColor: '#6B4E2E',
                 headerTitleStyle: { fontWeight: '700', color: '#1F2937' },
